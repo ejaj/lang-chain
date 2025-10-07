@@ -394,3 +394,4 @@ data
 Gemfile.lock
 .env
 rag/db
+rabitmq/routing/logs_from_rabbit.log
