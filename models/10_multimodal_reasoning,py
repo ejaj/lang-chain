@@ -1,0 +1,47 @@
+# TYPE: Multimodal + Reasoning
+# DESCRIPTION:
+# Multimodal = model can read images/audio/video, not just text
+# Reasoning  = model shows its thinking steps before giving the final answer
+# Both are optional features — only some models support them
+
+from langchain.chat_models import init_chat_model
+from langchain.messages import HumanMessage
+import base64
+
+model = init_chat_model("gpt-4.1", model_provider="openai")
+
+# ============================================================
+# PART 1: MULTIMODAL — send an image to the model
+# ============================================================
+
+# Load image and convert to base64
+with open("photo.jpg", "rb") as f:
+    image_data = base64.b64encode(f.read()).decode("utf-8")
+
+# Send image + text together
+response = model.invoke([
+    HumanMessage(content=[
+        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}},
+        {"type": "text",      "text": "What is in this image?"},
+    ])
+])
+print(response.content)
+# → "The image shows a cat sitting on a sofa..."
+
+# ============================================================
+# PART 2: REASONING — see the model's thinking steps
+# ============================================================
+
+reasoning_model = init_chat_model("claude-sonnet-4-6", model_provider="anthropic")
+
+# Stream and separate reasoning from final answer
+for chunk in reasoning_model.stream("Why do parrots have colorful feathers?"):
+    reasoning = [r for r in chunk.content_blocks if r["type"] == "reasoning"]
+    if reasoning:
+        print(f"Thinking: {reasoning[0]}")  # model's internal steps
+    elif chunk.text:
+        print(f"Answer: {chunk.text}")       # final answer
+
+# SIMPLE RULE:
+# Multimodal → send images/audio when model supports it (check model.profile)
+# Reasoning  → see HOW model thinks, useful for debugging complex answers
