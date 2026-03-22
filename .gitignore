@@ -394,3 +394,5 @@ data
 Gemfile.lock
 .env
 rag/db
+pyrightconfig.json
+.vscode/settings.json
